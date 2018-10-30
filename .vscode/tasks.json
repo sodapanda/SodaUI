@@ -9,7 +9,7 @@
         {
             "label": "cmake",
             "type": "shell",
-            "command": "cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=YES .. && make"
+            "command": "cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=YES .. && make && cp compile_commands.json ../"
         }
     ]
 }
