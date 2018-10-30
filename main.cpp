@@ -61,7 +61,7 @@ bool init()
         else
         {
             //Create renderer for window
-            gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
+            gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
             if (gRenderer == NULL)
             {
                 printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
@@ -171,16 +171,6 @@ int main(int argc, char *args[])
             //While application is running
             while (!quit)
             {
-                //Handle events on queue
-                SDL_WaitEvent(&e);
-                //User requests quit
-                if (e.type == SDL_QUIT)
-                {
-                    quit = true;
-                }
-
-                printf("event is %d\n", e.type);
-
                 //Clear screen
                 SDL_RenderClear(gRenderer);
 
@@ -189,6 +179,15 @@ int main(int argc, char *args[])
 
                 //Update screen
                 SDL_RenderPresent(gRenderer);
+
+                //Handle events on queue
+                SDL_WaitEvent(&e);
+                //User requests quit
+                if (e.type == SDL_QUIT)
+                {
+                    quit = true;
+                }
+                printf("event is %d\n", e.type);
             }
         }
     }
