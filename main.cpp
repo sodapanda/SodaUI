@@ -1,9 +1,11 @@
 /*This source code copyrighted by Lazy Foo' Productions (2004-2015)
 and may not be redistributed without written permission.*/
 
-//Using SDL, SDL_image, standard IO, and strings
+//Using SDL, SDL OpenGL, standard IO, and, strings
 #include <SDL.h>
-#include <SDL_image.h>
+#include <SDL_opengl.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
 #include <stdio.h>
 #include <string>
 
@@ -11,189 +13,222 @@ and may not be redistributed without written permission.*/
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
-//Starts up SDL and creates window
+//Starts up SDL, creates window, and initializes OpenGL
 bool init();
 
-//Loads media
-bool loadMedia();
+//Initializes matrices and clear color
+bool initGL();
+
+//Input handler
+void handleKeys( unsigned char key, int x, int y );
+
+//Per frame update
+void update();
+
+//Renders quad to the screen
+void render();
 
 //Frees media and shuts down SDL
 void close();
 
-//Loads individual image as texture
-SDL_Texture *loadTexture(std::string path);
-
 //The window we'll be rendering to
-SDL_Window *gWindow = NULL;
+SDL_Window* gWindow = NULL;
 
-//The window renderer
-SDL_Renderer *gRenderer = NULL;
+//OpenGL context
+SDL_GLContext gContext;
 
-//Current displayed texture
-SDL_Texture *gTexture = NULL;
+//Render flag
+bool gRenderQuad = true;
 
 bool init()
 {
-    //Initialization flag
-    bool success = true;
+	//Initialization flag
+	bool success = true;
 
-    //Initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
-    {
-        printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
-        success = false;
-    }
-    else
-    {
-        //Set texture filtering to linear
-        if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))
-        {
-            printf("Warning: Linear texture filtering not enabled!");
-        }
+	//Initialize SDL
+	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
+	{
+		printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
+		success = false;
+	}
+	else
+	{
+		//Use OpenGL 2.1
+		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 2 );
+		SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
 
-        //Create window
-        gWindow = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-        if (gWindow == NULL)
-        {
-            printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
-            success = false;
-        }
-        else
-        {
-            //Create renderer for window
-            gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-            if (gRenderer == NULL)
-            {
-                printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
-                success = false;
-            }
-            else
-            {
-                //Initialize renderer color
-                SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+		//Create window
+		gWindow = SDL_CreateWindow( "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+		if( gWindow == NULL )
+		{
+			printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
+			success = false;
+		}
+		else
+		{
+			//Create context
+			gContext = SDL_GL_CreateContext( gWindow );
+			if( gContext == NULL )
+			{
+				printf( "OpenGL context could not be created! SDL Error: %s\n", SDL_GetError() );
+				success = false;
+			}
+			else
+			{
+				//Use Vsync
+				if( SDL_GL_SetSwapInterval( 1 ) < 0 )
+				{
+					printf( "Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError() );
+				}
 
-                //Initialize PNG loading
-                int imgFlags = IMG_INIT_PNG;
-                if (!(IMG_Init(imgFlags) & imgFlags))
-                {
-                    printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
-                    success = false;
-                }
-            }
-        }
-    }
+				//Initialize OpenGL
+				if( !initGL() )
+				{
+					printf( "Unable to initialize OpenGL!\n" );
+					success = false;
+				}
+			}
+		}
+	}
 
-    return success;
+	return success;
 }
 
-bool loadMedia()
+bool initGL()
 {
-    //Loading success flag
-    bool success = true;
+	bool success = true;
+	GLenum error = GL_NO_ERROR;
 
-    //Load PNG texture
-    gTexture = loadTexture("texture.png");
-    if (gTexture == NULL)
-    {
-        printf("Failed to load texture image!\n");
-        success = false;
-    }
+	//Initialize Projection Matrix
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+	
+	//Check for error
+	error = glGetError();
+	if( error != GL_NO_ERROR )
+	{
+		printf( "Error initializing OpenGL! %s\n", gluErrorString( error ) );
+		success = false;
+	}
 
-    return success;
+	//Initialize Modelview Matrix
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
+
+	//Check for error
+	error = glGetError();
+	if( error != GL_NO_ERROR )
+	{
+		printf( "Error initializing OpenGL! %s\n", gluErrorString( error ) );
+		success = false;
+	}
+	
+	//Initialize clear color
+	glClearColor( 0.f, 0.f, 0.f, 1.f );
+	
+	//Check for error
+	error = glGetError();
+	if( error != GL_NO_ERROR )
+	{
+		printf( "Error initializing OpenGL! %s\n", gluErrorString( error ) );
+		success = false;
+	}
+	
+	return success;
+}
+
+void handleKeys( unsigned char key, int x, int y )
+{
+	//Toggle quad
+	if( key == 'q' )
+	{
+		gRenderQuad = !gRenderQuad;
+	}
+}
+
+void update()
+{
+	//No per frame update needed
+}
+
+void render()
+{
+	//Clear color buffer
+	glClear( GL_COLOR_BUFFER_BIT );
+	
+	//Render quad
+	if( gRenderQuad )
+	{
+		glBegin( GL_QUADS );
+			glVertex2f( -0.5f, -0.5f );
+			glVertex2f( 0.5f, -0.5f );
+			glVertex2f( 0.5f, 0.5f );
+			glVertex2f( -0.5f, 0.5f );
+		glEnd();
+	}
 }
 
 void close()
 {
-    //Free loaded image
-    SDL_DestroyTexture(gTexture);
-    gTexture = NULL;
+	//Destroy window	
+	SDL_DestroyWindow( gWindow );
+	gWindow = NULL;
 
-    //Destroy window
-    SDL_DestroyRenderer(gRenderer);
-    SDL_DestroyWindow(gWindow);
-    gWindow = NULL;
-    gRenderer = NULL;
-
-    //Quit SDL subsystems
-    IMG_Quit();
-    SDL_Quit();
+	//Quit SDL subsystems
+	SDL_Quit();
 }
 
-SDL_Texture *loadTexture(std::string path)
+int main( int argc, char* args[] )
 {
-    //The final texture
-    SDL_Texture *newTexture = NULL;
+	//Start up SDL and create window
+	if( !init() )
+	{
+		printf( "Failed to initialize!\n" );
+	}
+	else
+	{
+		//Main loop flag
+		bool quit = false;
 
-    //Load image at specified path
-    SDL_Surface *loadedSurface = IMG_Load(path.c_str());
-    if (loadedSurface == NULL)
-    {
-        printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError());
-    }
-    else
-    {
-        //Create texture from surface pixels
-        newTexture = SDL_CreateTextureFromSurface(gRenderer, loadedSurface);
-        if (newTexture == NULL)
-        {
-            printf("Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError());
-        }
+		//Event handler
+		SDL_Event e;
+		
+		//Enable text input
+		SDL_StartTextInput();
 
-        //Get rid of old loaded surface
-        SDL_FreeSurface(loadedSurface);
-    }
+		//While application is running
+		while( !quit )
+		{
+			//Handle events on queue
+			while( SDL_PollEvent( &e ) != 0 )
+			{
+				//User requests quit
+				if( e.type == SDL_QUIT )
+				{
+					quit = true;
+				}
+				//Handle keypress with current mouse position
+				else if( e.type == SDL_TEXTINPUT )
+				{
+					int x = 0, y = 0;
+					SDL_GetMouseState( &x, &y );
+					handleKeys( e.text.text[ 0 ], x, y );
+				}
+			}
 
-    return newTexture;
-}
+			//Render quad
+			render();
+			
+			//Update screen
+			SDL_GL_SwapWindow( gWindow );
+		}
+		
+		//Disable text input
+		SDL_StopTextInput();
+	}
 
-int main(int argc, char *args[])
-{
-    //Start up SDL and create window
-    if (!init())
-    {
-        printf("Failed to initialize!\n");
-    }
-    else
-    {
-        //Load media
-        if (!loadMedia())
-        {
-            printf("Failed to load media!\n");
-        }
-        else
-        {
-            //Main loop flag
-            bool quit = false;
+	//Free resources and close SDL
+	close();
 
-            //Event handler
-            SDL_Event e;
-
-            //While application is running
-            while (!quit)
-            {
-                //Clear screen
-                SDL_RenderClear(gRenderer);
-
-                //Render texture to screen
-                SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);
-
-                //Update screen
-                SDL_RenderPresent(gRenderer);
-
-                //Handle events on queue
-                SDL_WaitEvent(&e);
-                //User requests quit
-                if (e.type == SDL_QUIT)
-                {
-                    quit = true;
-                }
-                printf("event is %d\n", e.type);
-            }
-        }
-    }
-
-    //Free resources and close SDL
-    close();
-
-    return 0;
+	return 0;
 }
