@@ -14,7 +14,7 @@ include_directories(${SDL2_INCLUDE_DIR}
                     ${SDL2_TTF_INCLUDE_DIR}
                     ${OPENGL_INCLUDE_DIRS})
 
-add_executable(sodaui main.cpp)
+add_executable(sodaui src/main.cpp)
 
 target_link_libraries(sodaui ${SDL2_LIBRARY}
                              ${SDL2_IMAGE_LIBRARIES}

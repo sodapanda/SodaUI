@@ -1,7 +1,7 @@
 [
 {
-  "directory": "/Users/qishuimac/devel/workspace/SodaUI/build",
-  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -I/usr/local/include/SDL2  -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk   -o CMakeFiles/sodaui.dir/main.cpp.o -c /Users/qishuimac/devel/workspace/SodaUI/main.cpp",
-  "file": "/Users/qishuimac/devel/workspace/SodaUI/main.cpp"
+  "directory": "/Users/wangxiao/devel/sideprojects/sodaui/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -I/usr/local/include/SDL2  -g   -o CMakeFiles/sodaui.dir/src/main.cpp.o -c /Users/wangxiao/devel/sideprojects/sodaui/src/main.cpp",
+  "file": "/Users/wangxiao/devel/sideprojects/sodaui/src/main.cpp"
 }
 ]
